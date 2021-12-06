@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Settle</title>
+    <link rel="stylesheet" href="css/element.css">
+    <link rel="stylesheet" href="css/fonts/font-awesome.min.css">
+    <script src="js/vue.js"></script>
+    <script src="js/element.js"></script>
+    <script src="js/sweet-alert@2.1.2.js"></script>
+    <script src="js/jquery-3.3.1.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background-color: #f4f6f9;
+        }
+
+        .index-nav:hover {
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, .1);
+        }
+
+        .index-nav {
+            margin-bottom: 25px;
+            color: #666;
+            -webkit-animation-duration: .5s;
+            animation-duration: .5s;
+            -webkit-animation-fill-mode: both;
+            animation-fill-mode: both;
+            box-shadow: 0 0 6px rgba(0, 0, 0, .1);
+            transition: all .2s ease-in-out;
+            background-color: white;
+        }
+
+        .logo-container {
+            width: 50%;
+            display: flex;
+            justify-content: left;
+        }
+
+        .nav-link {
+            font-size: 18px;
+            margin-left: 30px;
+        }
+
+        .logo {
+            height: 60px;
+            margin: 5px 10px 5px 10px;
+        }
+
+        #form-container {
+            margin: 20px auto;
+            max-width: 60%;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        i.el-icon-circle-check {
+            color: #67C23A;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="index-nav">
+            <a v-if="user.username==''" href="login.html"
+                style="float: right;position: relative;right: 30px;top: 25px;text-decoration: none;cursor: pointer;">
+                Log in
+            </a>
+            <a href="#" v-if="user.username!=''" @click='signout'
+                style="float: right;position: relative;right: 30px;top: 25px;text-decoration: none; margin-left: 30px;">
+                Sign out
+            </a>
+            <a href="#" v-if="user.username!=''"
+                style="float: right;position: relative;right: 30px;top: 25px;text-decoration: none;">
+                {{user.username}}
+            </a>
+            <div style="float: right;position: relative;top: 10px;right: 50px;">
+                <img v-if="user.username!=''" :src="user.avatar" style="width: 50px;height: 50px;border-radius: 50%;"
+                    alt="">
+
+            </div>
+
+            <div class="logo-container" onclick="window.location.href='/index.html'">
+                <img class="logo" />
+                <div style="align-self: center;font-size: 25px;">Public comment</div>
+                <el-link class="nav-link" href="index.html">Home</el-link>
+                <el-link class="nav-link" type="primary" href="createshop.html">Store Settle</el-link>
+
+            </div>
+        </div>
+        <div id="form-container" v-loading = "loading">
+            <el-form :model="shopForm" status-icon ref="shopForm" >
+                <el-form-item label="Shop Name" prop="name" :rules="[
+                { required: true, message: 'Not Empty'}
+                ]">
+                    <el-input v-model="shopForm.name"></el-input>
+                </el-form-item>
+                <el-form-item label="Shop Address" prop="address" :rules="[
+                { required: true, message: 'Not Empty'}
+                ]">
+                    <el-input v-model="shopForm.address"></el-input>
+                </el-form-item>
+                <el-form-item label="Shop Type" prop="type_id" :rules="[
+                    { required: true, message: 'Not Empty'}
+                    ]">
+                    <el-select v-model="shopForm.type_id" style="width: 100%;" placeholder="">
+                        <el-option v-for="shoptype in shoptypes" :label="shoptype.name" :value="shoptype.id">
+                        </el-option>
+
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="Shop Introduction" prop="desc" :rules="[
+                { required: true, message: 'Not Empty'}
+                ]">
+                    <el-input type="textarea" v-model="shopForm.desc"></el-input>
+                </el-form-item>
+
+                <el-form-item label="Shop images">
+                    <br>
+                    <el-upload ref="upload" :http-request="submitForm" action="#" list-type="picture-card"
+                        :on-preview="handlePictureCardPreview" :auto-upload="false" style="margin-top: 20px;"
+                        :limit="10" :on-exceed="limit_upload" >
+                        <i class="el-icon-plus"></i>
+                    </el-upload>
+
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click.native.prevent="submitForm('shopForm')">Submit</el-button>
+                    <el-button @click="resetForm('shopForm')">Reset</el-button>
+                </el-form-item>
+            </el-form>
+            <el-dialog :visible.sync="dialogImageVisible">
+                <img width="100%" :src="dialogImageUrl" alt="">
+            </el-dialog>
+
+
+
+        </div>
+    </div>
+    <script>
+        var host = "http://127.0.0.1:5000";
+        var vm = new Vue({
+            el: "#app",
+            data() {
+
+                return {
+                    loading:false,
+                    user: {
+                        username: '',
+                        avatar: 'server/static/user_avatar/test.jpg'
+                    },
+                    shoptypes: [],
+                    shopForm: {
+
+                    },
+                    dialogImageVisible: false,
+                    dialogImageUrl: "",
+                }
+            },
+            mounted() {
+                $.ajax({
+                    url: host + "/getuser/",
+                    method:"get",
+                    xhrFields:{
+                        withCredentials:true
+                    },
+                    success:(response)=>{
+                        if(response['result']== 0){
+                            this.user = response;
+                            this.user.avatar ='server/' +this.user.avatar
+                        }
+                            
+                    }
+
+                });
+                $.ajax({
+                    url: "http://127.0.0.1:5000/shoptypes/",
+                    method: "get",
+                    success: (response) => {
+                        this.shoptypes = response;
+                    }
+                })
+            },
+            methods: {
+                submitForm(formName) {
+                    this.$refs[formName].validate((valid) => {
+                        if (valid) {
+                            this.createShop();
+                        } else {
+                            console.log('error submit!!');
+                            return false;
+                        }
+                    });
+                },
+                resetForm(formName) {
+                    this.$refs[formName].resetFields();
+                    this.shopForm = {}; //如果数据有一行没有写数据，直接点reset，会导致写数据输入框没反应，但结果已经记录的情况
+                },
+                handlePictureCardPreview(file) {
+                    this.dialogImageUrl = file.url;
+                    // console.log(file);
+                    this.dialogImageVisible = true;
+                },
+                limit_upload() {
+                    this.$notify({
+                        title: 'Wrong',
+                        message: 'only ten avatar',
+                        type: 'warning'
+                    });
+                },
+                createShop(){
+                    this.loading = true;
+                    var formData = new FormData();
+                    for(let i = 0 ; i < this.$refs.upload.uploadFiles.length;i++){
+                        formData.append("img"+i, this.$refs.upload.uploadFiles[i].raw);
+                    }
+                    formData.append("imgs_length", this.$refs.upload.uploadFiles.length);
+                    formData.append("name", this.shopForm.name);
+                    formData.append("address", this.shopForm.address);
+                    formData.append("desc", this.shopForm.desc);
+                    formData.append("type_id", this.shopForm.type_id);
+
+                    $.ajax({
+                        url: "http://127.0.0.1:5000/createshop/",
+                        data: formData,
+                        type: "POST",
+                        contentType: false,
+                        processData: false,
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        success: (response) => {
+                            if (response['result'] == 0) {
+                                this.loading = false;
+                                swal('Nice!!!d=====(￣▽￣*)b', 'Thanks for your join', 'success').then(() => {
+                                    
+                                })
+                                location.assign("/index.html");
+                            } else {
+                                console.log(response)
+                                alert('wrong');
+                            }
+                        }
+                    });
+                }, 
+
+
+
+                signout() {
+                    var cookies = document.cookie.split(";");
+                    var new_cookie = [];
+                    for (let cookie of cookies) {
+                        document.cookie = cookie.split("=")[0] + "=; ";
+                    }
+                    document.cookie = new_cookie.join(";");
+                    localStorage.clear();
+                    swal('Sign out successfully', 'hope next meet', 'success').then(() => {
+                        location.reload();
+                    });
+
+                },
+            }
+        })
+    </script>
+</body>

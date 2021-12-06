@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="css/element.css">
+    <link rel="stylesheet" href="css/fonts/font-awesome.min.css">
+    <script src="js/vue.js"></script>
+    <script src="js/element.js"></script>
+    <script src="js/sweet-alert@2.1.2.js"></script>
+    <script src="js/jquery-3.3.1.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background-color: #f4f6f9;
+        }
+
+        #form-container {
+            margin: 20px auto;
+            max-width: 60%;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        i.el-icon-circle-check {
+            color: #67C23A;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div id="form-container">
+            <div style="padding: 20px 30px;" v-loading="loading" element-loading-text="loading">
+                <el-link :underline="false" :type="formType=='login'?'primary':''" style="font-size: 20px;"
+                    @click="formType='login'">Login</el-link>
+                |
+                <el-link :underline="false" :type="formType!='login'?'primary':''" style="font-size: 20px;"
+                    @click="formType='signup'">Sign up</el-link>
+
+            </div>
+            <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" class="demo-ruleForm">
+                <el-form-item label="Username" prop="username" :rules="[
+                { required: true, message: 'Not Empty'}
+                ]">
+                    <el-input v-model="ruleForm.username"></el-input>
+                </el-form-item>
+                <el-form-item label="Password" prop="pass">
+                    <el-input type="password" v-model="ruleForm.pass" autocomplete="off"></el-input>
+                </el-form-item>
+                <section v-if="formType=='signup'">
+                    <el-form-item label="Password Confirm" prop="checkPass">
+                        <el-input type="password" v-model="ruleForm.checkPass" autocomplete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="Age" prop="age">
+                        <el-input v-model.number="ruleForm.age"></el-input>
+                    </el-form-item>
+                    <el-form-item label="Gender" prop="gender" :rules="[
+                    { required: true, message: 'Not Empty'}
+                    ]">
+                        <el-select v-model="ruleForm.gender" style="width: 100%;" placeholder="">
+                            <el-option label="Male" value="Male"></el-option>
+                            <el-option label="Female" value="Female"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="Self Introduction" prop="desc">
+                        <el-input type="textarea" v-model="ruleForm.desc"></el-input>
+                    </el-form-item>
+                    <el-form-item label="User Type">
+                        <br>
+                        <el-radio v-model="ruleForm.user_type" label="0">General User</el-radio>
+                        <el-radio v-model="ruleForm.user_type" label="1">Merchant</el-radio>
+                    </el-form-item>
+                    <el-form-item label="User Avatar" :rules="[
+                    { required: true, message: 'Not Empty'}
+                    ]">
+                        <br>
+                        <el-upload ref="upload" :http-request="submitForm" action="#" list-type="picture-card"
+                            :on-preview="handlePictureCardPreview" :auto-upload="false" style="margin-top: 20px;"
+                            :limit="1" :on-exceed="limit_upload">
+                            <i class="el-icon-plus"></i>
+                        </el-upload>
+
+                    </el-form-item>
+                </section>
+
+                <el-form-item>
+                    <el-button type="primary" @click="submitForm('ruleForm')">Submit</el-button>
+                    <el-button @click="resetForm('ruleForm')">Reset</el-button>
+                </el-form-item>
+
+            </el-form>
+            <el-dialog :visible.sync="dialogImageVisible">
+                <img width="100%" :src="dialogImageUrl" alt="">
+            </el-dialog>
+        </div>
+    </div>
+    <script>
+
+
+        var vm = new Vue({
+            el: "#app",
+            data() {
+                var checkAge = (rule, value, callback) => {
+                    if (!value) {
+                        return callback(new Error('Not Empty'));
+                    }
+                    if (!Number.isInteger(value)) {
+                        callback(new Error('Must be Number'));
+                    } else {
+                        if (value < 18) {
+                            callback(new Error('Must greater than 18'));
+                        } else {
+                            callback();
+                        }
+                    }
+                };
+                var validatePass = (rule, value, callback) => {
+                    if (value === '') {
+                        callback(new Error('Please Input Password'));
+                    } else {
+                        if (this.ruleForm.checkPass !== '') {
+                            this.$refs.ruleForm.validateField('checkPass');
+                        }
+                        callback();
+                    }
+                };
+                var validatePass2 = (rule, value, callback) => {
+                    if (value === '') {
+                        callback(new Error('Please Input Password'));
+                    } else if (value !== this.ruleForm.pass) {
+                        callback(new Error('The two passwords are inconsistent!'));
+                    } else {
+                        callback();
+                    }
+                };
+                return {
+                    dialogImageVisible: false,
+                    dialogImageUrl: "",
+                    loading: false,
+                    formType: 'login',
+                    ruleForm: {
+                        username: '',
+                        pass: '',
+                        checkPass: '',
+                        age: '',
+                        gender: '',
+                        desc: '',
+                        user_type: '0'
+                    },
+                    rules: {
+                        pass: [{
+                            required: true,
+                            validator: validatePass,
+                            trigger: 'blur'
+                        }],
+                        checkPass: [{
+                            required: true,
+                            validator: validatePass2,
+                            trigger: 'blur'
+                        }],
+                        age: [{
+                            required: true,
+                            validator: checkAge,
+                            trigger: 'blur'
+                        }]
+                    }
+                }
+            },
+
+            methods: {
+                submitForm(formName) {
+                    this.$refs[formName].validate((valid) => {
+                        if (valid) {
+                            if (this.formType == 'login') {
+                                this.login();
+                            }
+                            else {
+                                this.signup();
+                            }
+                        } else {
+                            console.log('error submit!!');
+                            return false;
+                        }
+                    });
+                },
+                login() {
+                    this.loading = true;
+                    $.ajax({
+                        url: "http://127.0.0.1:5000/login/",
+                        method: "post",
+                        data: {
+                            username: this.ruleForm.username,
+                            password: this.ruleForm.pass
+                        },
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        success: (response) => {
+                            if (response['result'] == -1) {
+                                this.loading = false;
+                                swal('Wrong', response['msg'], 'error');
+                            } else {
+                                console.log(response);
+                                this.user = response;
+                                localStorage.setItem("username", response.username);
+                                localStorage.setItem("avatar", response.avatar);
+                                localStorage.setItem("type", response.type);
+
+                                this.loading = false;
+                                swal('Nice!!!d=====(￣▽￣*)b', 'Success', 'success').then(() => {
+                                    location.assign("/index.html");
+                                })
+                            }
+                        }
+                    });
+                },
+                signup() {
+                    this.loading = true;
+                    var formData = new FormData();
+                    formData.append("avatar", this.$refs.upload.uploadFiles[0].raw);
+                    formData.append("username", this.ruleForm.username);
+                    formData.append("password", this.ruleForm.pass);
+                    formData.append("gender", this.ruleForm.gender);
+                    formData.append("age", this.ruleForm.age);
+                    formData.append("desc", this.ruleForm.desc);
+                    formData.append("user_type", this.ruleForm.user_type);
+
+                    $.ajax({
+                        url: "http://127.0.0.1:5000/signup/",
+                        data: formData,
+                        type: "POST",
+                        contentType: false,
+                        processData: false,
+                        success: (response) => {
+                            if (response['result'] == 0) {
+                                this.loading = false;
+                                swal('Nice!!!d=====(￣▽￣*)b', 'Please Log in next', 'success').then(() => {
+                                    location.reload();
+                                })
+                            } else {
+                                alert('wrong');
+                                console.log(response)
+                            }
+                        }
+                    });
+                },
+                resetForm(formName) {
+                    this.$refs[formName].resetFields();
+                },
+                handlePictureCardPreview(file) {
+                    this.dialogImageUrl = file.url;
+                    console.log(file);
+                    this.dialogImageVisible = true;
+                },
+                limit_upload() {
+                    this.$notify({
+                        title: 'Wrong',
+                        message: 'only one avatar',
+                        type: 'warning'
+                    });
+                },
+
+
+            }
+        })
+    </script>
+</body>
+
+</html>

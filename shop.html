@@ -1,0 +1,489 @@
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+    <link rel="stylesheet" href="css/element.css">
+    <link rel="stylesheet" href="css/fonts/font-awesome.min.css">
+    <script src="js/vue.js"></script>
+    <script src="js/element.js"></script>
+    <script src="js/sweet-alert@2.1.2.js"></script>
+    <script src="js/jquery-3.3.1.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background-color: #f4f6f9;
+        }
+
+        .index-nav:hover {
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, .1);
+        }
+
+        .index-nav {
+            margin-bottom: 25px;
+            color: #666;
+            -webkit-animation-duration: .5s;
+            animation-duration: .5s;
+            -webkit-animation-fill-mode: both;
+            animation-fill-mode: both;
+            box-shadow: 0 0 6px rgba(0, 0, 0, .1);
+            transition: all .2s ease-in-out;
+            background-color: white;
+        }
+
+        .logo-container {
+            width: 50%;
+            display: flex;
+            justify-content: left;
+        }
+
+        .nav-link {
+            font-size: 18px;
+            margin-left: 30px;
+        }
+
+        .logo {
+            height: 60px;
+            margin: 5px 10px 5px 10px;
+        }
+
+        .container {
+            margin: 20px auto;
+            max-width: 60%;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .category-selected {
+            background-color: #ecf5ff;
+            color: #66b1ff;
+        }
+
+        .card-image {
+            margin: 5px auto;
+            display: inherit;
+        }
+
+        .info-tag {
+            margin-right: 10px;
+            width: 100px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .container .el-image__preview {
+            width: 200px;
+            height: auto;
+            margin-right: 10px;
+        }
+
+        .comment-image .el-image__preview {
+            width: 120px;
+            height: auto;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            float: left;
+        }
+
+        .comment-container {
+            padding-left: 80px;
+        }
+
+        .replies {
+            font-size: 13px;
+            cursor: pointer;
+
+        }
+
+        .replies:hover {
+            color: #f63;
+        }
+
+        #commentForm .el-upload--picture-card i {
+            line-height: inherit;
+        }
+
+        #commentForm .el-rate {
+            position: absolute;
+            left: 60px;
+            top: 10px;
+        }
+
+        .el-rate__text {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="index-nav">
+            <a v-if="user.username==''" href="login.html"
+                style="float: right;position: relative;right: 30px;top: 25px;text-decoration: none;cursor: pointer;">
+                Log in
+            </a>
+            <a href="#" v-if="user.username!=''" @click='signout'
+                style="float: right;position: relative;right: 30px;top: 25px;text-decoration: none; margin-left: 30px;">
+                Sign out
+            </a>
+            <a href="#" v-if="user.username!=''"
+                style="float: right;position: relative;right: 30px;top: 25px;text-decoration: none;">
+                {{user.username}}
+            </a>
+            <div style="float: right;position: relative;top: 10px;right: 50px;">
+                <img v-if="user.username!=''" :src="user.avatar" style="width: 50px;height: 50px;border-radius: 50%;"
+                    alt="">
+
+            </div>
+
+            <div class="logo-container" onclick="window.location.href='/index.html'">
+                <img class="logo" />
+                <div style="align-self: center;font-size: 25px;">Public comment</div>
+                <el-link class="nav-link" href="index.html">Home</el-link>
+                <el-link class="nav-link" v-if="user.username!='' && user.type=='1'" href="createshop.html">Store Settle
+                </el-link>
+
+            </div>
+        </div>
+
+        <div class="container">
+            <h2>{{shop.name}} </h2>
+            <div style="display: flex;justify-content: space-between;margin-bottom: 10px;">
+                <el-rate :value='shop.rating' disabled text-color="#ff9900" show-score score-template="{value}">
+                </el-rate>
+                <span style="color: #999;" v-if="shop.comments">{{shop.comments.length}} comments</span>
+            </div>
+            <div style="color: #666;">
+                <div>
+                    <span class="info-tag">Adress:</span>
+                    <span>{{shop.address}} </span>
+                </div>
+                <div>
+                    <span class="info-tag">Description:</span>
+                    <span>{{shop.desc}} </span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="container">
+            <h3>Shop Images</h3>
+            <div>
+                <el-image v-for="img in shopImgsList " :src="img" :preview-src-list="shopImgsList">
+                </el-image>
+            </div>
+        </div>
+
+        <div class="container">
+            <div style="position: relative;">
+                <h3>Comments</h3>
+                <el-button type="primary" icon="el-icon-edit" @click="openCommentDialog"
+                    style="position: absolute;right: 0;top: 0;transform: translateY(-25%);">
+                    Add Comment
+                </el-button>
+            </div>
+            <div>
+                <div v-for="comment in shop.comments">
+                    <img :src="'server/'+comment.author.avatar" alt="" class="user-avatar">
+                    <div class="comment-container">
+                        <p class="username">{{comment.author.username}} </p>
+                        <div>
+                            <el-rate :value='comment.rating' disabled show-score text-color="#ff9900"
+                                score-template="{value}">
+                            </el-rate>
+                        </div>
+                        <p>
+                            {{comment.content}}
+                        </p>
+                        <div class="comment-image">
+                            <el-image v-for="img in comment.imgs" :src="'server/'+img"
+                                :preview-src-list="comment.imgs.map(i=>'server/'+i)">
+                            </el-image>
+                        </div>
+                        <div style="color: #999 ;display: flex;justify-content: space-between;">
+                            <span style="font-size: 12px;">
+                                {{comment.ctime.split('.')[0]}}
+                            </span>
+                            <span class="replies" @click="openReplyDialog(comment.id)">Replies({{comment.replies_length}})</span>
+                        </div>
+                    </div>
+                    <el-divider></el-divider>
+                </div>
+            </div>
+        </div>
+
+        <el-dialog title="Replies" :visible.sync="dialogReplyVisible">
+            <el-input type="textarea" :rows="5" placeholder="Please input your reply" v-model="cur_reply">
+            </el-input>
+            <div style="text-align: end;margin: 20px 0;">
+                <el-button type="primary" @click="submitReply">Reply</el-button>
+            </div>
+            <div v-loading="cur_replies_loading" element-loading-text="Replies Loading">
+                <div v-for= "reply in cur_replies">
+                    <img :src="'server/'+reply.author.avatar" alt="" class="user-avatar">
+                    <div class="comment-container">
+                        <p class="username">{{reply.author.username}} </p>
+    
+                        <p>
+                            {{reply.content}}
+                        </p>
+    
+                        <span style="font-size: 12px;color: #999 ;">
+                            {{reply.ctime.split('.')[0]}}
+                        </span>
+    
+                    </div>
+                    <el-divider></el-divider>
+                </div>
+                
+            </div>
+        </el-dialog>
+        <el-dialog title="Add new comment" :visible.sync="dialogCommentVisible">
+            <el-form :model="commentForm" status-icon ref="commentForm" id="commentForm" @submit.native.prevent>
+                <el-form-item label="Shop Name" prop="name" v-if="false" :rules="[
+                { required: true, message: 'Not Empty'}
+                ]">
+                    <el-input v-model="commentForm.name"></el-input>
+                </el-form-item>
+
+                <el-form-item label="Comment" prop="content" :rules="[
+                { required: true, message: 'Not Empty'}
+                ]">
+                    <el-input type="textarea" :rows="4" v-model="commentForm.content"></el-input>
+                </el-form-item>
+                <el-form-item label="Rate" prop="rating" :rules="[
+                { required: true, message: 'Not Empty'}
+                ]">
+                    <el-rate v-model="commentForm.rating" show-score score-template="{value}" :colors="colors">
+                    </el-rate>
+                </el-form-item>
+                <el-form-item label="Comment images">
+                    <br>
+                    <el-upload ref="upload" :http-request="submitForm" action="" list-type="picture-card"
+                        :on-preview="handlePictureCardPreview" :auto-upload="false" style="margin-top: 20px;"
+                        :limit="10" :on-exceed="limit_upload">
+                        <i class="el-icon-plus"></i>
+                    </el-upload>
+
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click.native.prevent="submitForm('commentForm')">Submit</el-button>
+                    <el-button @click="resetForm('commentForm')">Reset</el-button>
+                </el-form-item>
+            </el-form>
+
+        </el-dialog>
+        <el-dialog :visible.sync="dialogImageVisible">
+            <img width="100%" :src="dialogImageUrl" alt="">
+        </el-dialog>
+
+    </div>
+    <script>
+        var host = "http://127.0.0.1:5000";
+        var vm = new Vue({
+            el: "#app",
+            data: {
+                loading: false,
+                dialogReplyVisible: false,
+                dialogImageVisible: false,
+                dialogImageUrl: "",
+                dialogCommentVisible: false,
+                cur_reply: '',
+                user: {
+                    username: '',
+                    avatar: 'server/static/user_avatar/test.jpg'
+                },
+                shop: {},
+                shopImgsList: [],
+                commentForm: {
+                    rating: 0
+                },
+                colors: ['#99A9BF', '#F7BA2A', '#FF9900'],
+                cur_comment_id:0,
+                cur_replies: [],
+                cur_replies_loading:false
+            },
+            beforeCreate() {
+                $.ajax({
+                    url: host + "/getuser/",
+                    method: "get",
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    success: (response) => {
+                        if (response['result'] == 0) {
+                            this.user = response;
+                            this.user.avatar = 'server/' + this.user.avatar
+                        }
+
+                    }
+
+                });
+                var shopID = location.search[location.search.length - 1];
+                $.ajax({
+                    url: host + "/getshop/" + shopID,
+                    method: "get",
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    success: (response) => {
+                        if (response['result'] == 0) {
+                            this.shop = response.shop;
+                            this.shopImgsList = this.shop.imgs.map(value => 'server/' + value);
+                            var sumRating = 0;
+                            for (let comment of this.shop.comments) {
+                                sumRating += comment.rating;
+                            }
+                            this.shop.rating = this.shop.comments.length == 0 ? 0 : sumRating / this.shop.comments.length;
+                        }
+
+                    }
+
+                });
+
+            },
+            methods: {
+                openCommentDialog() {
+                    
+                    if (this.user.username == '') {
+                        this.$notify({
+                            title: 'Wrong',
+                            message: 'You should Log in first!!!',
+                            type: 'warning'
+                        });
+                        return;
+                    }
+                    else {
+                        this.dialogCommentVisible = true;
+                    }
+                },
+                submitReply(){
+                    $.ajax({
+                        url: host + "/addreply/",
+                        method: "post",
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        data:{
+                            content:this.cur_reply,
+                            comment_id:this.cur_comment_id
+                        },
+                        success: (response) => {
+                            if (response['result'] == 0) {
+                                this.cur_replies = [response.reply].concat(this.cur_replies);
+                                this.comments.find(comment=>comment.id==this.cur_comment_id).replies_length +=1 ;
+                            }
+
+                        }
+
+                    });
+                },  
+                openReplyDialog(comment_id) {
+                    this.cur_comment_id = comment_id;
+                    this.cur_replies_loading = true;
+                    $.ajax({
+                        url: host + "/getreplies/" + comment_id,
+                        method: "get",
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        success: (response) => {
+                            if (response['result'] == 0) {
+                                this.cur_replies = response.replies;
+                            }
+
+                        }
+
+                    });
+                    this.dialogReplyVisible = true;
+                    this.cur_replies_loading = false;
+
+                },
+                submitForm(formName) {
+                    this.$refs[formName].validate((valid) => {
+                        if (valid) {
+                            this.createComment();
+                        } else {
+                            console.log('error submit!!');
+                            return false;
+                        }
+                    });
+                },
+                resetForm(formName) {
+                    this.$refs[formName].resetFields();
+                    this.commentForm = {}; //如果数据有一行没有写数据，直接点reset，会导致写数据输入框没反应，但结果已经记录的情况
+                },
+                handlePictureCardPreview(file) {
+                    this.dialogImageUrl = file.url;
+                    // console.log(file);
+                    this.dialogImageVisible = true;
+                },
+                limit_upload() {
+                    this.$notify({
+                        title: 'Wrong',
+                        message: 'only ten avatar',
+                        type: 'warning'
+                    });
+                },
+                createComment() {
+                    this.loading = true;
+                    var formData = new FormData();
+                    for (let i = 0; i < this.$refs.upload.uploadFiles.length; i++) {
+                        formData.append("img" + i, this.$refs.upload.uploadFiles[i].raw);
+                    }
+                    formData.append("imgs_length", this.$refs.upload.uploadFiles.length);
+                    formData.append("content", this.commentForm.content);
+                    formData.append("rating", this.commentForm.rating);
+                    formData.append("shop_id", location.search[location.search.length - 1]);
+
+
+                    $.ajax({
+                        url: "http://127.0.0.1:5000/addcomment/",
+                        data: formData,
+                        type: "POST",
+                        contentType: false,
+                        processData: false,
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        success: (response) => {
+                            if (response['result'] == 0) {
+                                this.loading = false;
+                                swal('Nice!!!d=====(￣▽￣*)b', 'Thanks for your comment', 'success').then(() => {
+                                    location.reload();
+                                })
+
+                            } else {
+                                console.log(response)
+                                alert('wrong');
+                            }
+                        }
+                    });
+                },
+                signout() {
+                    var cookies = document.cookie.split(";");
+                    var new_cookie = [];
+                    for (let cookie of cookies) {
+                        document.cookie = cookie.split("=")[0] + "=; ";
+                    }
+                    document.cookie = new_cookie.join(";");
+                    localStorage.clear();
+                    swal('Sign out successfully', 'hope next meet', 'success').then(() => {
+                        location.reload();
+                    });
+
+                },
+            }
+        })
+    </script>
+
+
+</body>

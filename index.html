@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+    <link rel="stylesheet" href="css/element.css">
+    <link rel="stylesheet" href="css/fonts/font-awesome.min.css">
+    <script src="js/vue.js"></script>
+    <script src="js/element.js"></script>
+    <script src="js/sweet-alert@2.1.2.js"></script>
+    <script src="js/jquery-3.3.1.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background-color: #f4f6f9;
+        }
+
+        .index-nav:hover {
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, .1);
+        }
+
+        .index-nav {
+            margin-bottom: 25px;
+            color: #666;
+            -webkit-animation-duration: .5s;
+            animation-duration: .5s;
+            -webkit-animation-fill-mode: both;
+            animation-fill-mode: both;
+            box-shadow: 0 0 6px rgba(0, 0, 0, .1);
+            transition: all .2s ease-in-out;
+            background-color: white;
+        }
+
+        .logo-container {
+            width: 50%;
+            display: flex;
+            justify-content: left;
+        }
+
+        .nav-link {
+            font-size: 18px;
+            margin-left: 30px;
+        }
+
+        .logo {
+            height: 60px;
+            margin: 5px 10px 5px 10px;
+        }
+
+        #shop-container {
+            margin: 20px auto;
+            max-width: 60%;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .category-selected {
+            background-color: #ecf5ff;
+            color: #66b1ff;
+        }
+
+        .card-image {
+            margin: 5px auto;
+            display: inherit;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="index-nav">
+            <a v-if="user.username==''" href="login.html"
+                style="float: right;position: relative;right: 30px;top: 25px;text-decoration: none;cursor: pointer;">
+                Log in
+            </a>
+            <a href="#" v-if="user.username!=''" @click='signout'
+                style="float: right;position: relative;right: 30px;top: 25px;text-decoration: none; margin-left: 30px;">
+                Sign out
+            </a>
+            <a href="#" v-if="user.username!=''"
+                style="float: right;position: relative;right: 30px;top: 25px;text-decoration: none;">
+                {{user.username}}
+            </a>
+            <div style="float: right;position: relative;top: 10px;right: 50px;">
+                <img v-if="user.username!=''" :src="user.avatar" style="width: 50px;height: 50px;border-radius: 50%;"
+                    alt="">
+
+            </div>
+
+            <div class="logo-container" onclick="window.location.href='/index.html'">
+                <img class="logo" />
+                <div style="align-self: center;font-size: 25px;">Public comment</div>
+                <el-link class="nav-link" type="primary" href="index.html">Home</el-link>
+                <el-link class="nav-link" v-if="user.username!='' && user.type=='1'" href="createshop.html">Store Settle
+                </el-link>
+
+            </div>
+        </div>
+        <div style="text-align: center;">
+            <el-input v-model="query" placeholder="Please input search query" style="width: 60%;" @input="searchShops">
+            </el-input>
+            <el-dropdown @command="changeCategory">
+                <el-button type="primary" v-if="category=='all'">
+                    Shop Category<i class="el-icon-arrow-down el-icon--right"></i>
+                </el-button>
+                <el-button type="primary" v-else>
+                    {{category}} <i class="el-icon-arrow-down el-icon--right"></i>
+                </el-button>
+                <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item :command="'all'"
+                        :class="category=='all'?'category-selected':''">All </el-dropdown-item>
+                    <el-dropdown-item v-for="type in shoptypes" :command="type.name"
+                        :class="category==type.name?'category-selected':''">{{type.name}} </el-dropdown-item>
+                </el-dropdown-menu>
+            </el-dropdown>
+
+        </div>
+        <div style="display: flex;flex-wrap: wrap;justify-content: space-evenly;margin: 20px;" v-loading = "searching">
+            <el-card :body-style="{ padding: '10px' }" v-for="shop in shopsShow" style="margin-bottom: 20px;">
+                <img :src="'server/'+shop.imgs[0]" class="card-image" style="width: 400px;" @click="toShop(shop.id)">
+                <div style="padding: 5px;">
+                    <h3>{{shop.name}}</h3>
+                    <div class="bottom clearfix" >
+                        <div style="display: flex;justify-content: space-between;margin-bottom: 10px;">
+                            <el-rate :value='shop.average_rating' disabled text-color="#ff9900" >
+                            </el-rate>
+                            <span style="color: #999;">{{shop.comments_length}} comments</span>
+                        </div>
+                        <div style="display: flex;justify-content: space-between;color: #999;margin-bottom: 10px;">
+                            <span>{{shop.type}} </span>
+                            <span>{{shop.address}}</span>
+                        </div>
+                        
+                    </div>
+                </div>
+            </el-card>
+
+        </div>
+
+
+    </div>
+    <script>
+        var host = "http://127.0.0.1:5000";
+        var vm = new Vue({
+            el: "#app",
+            data: {
+                query: "",
+                category: "all",
+                user: {
+                    username: '',
+                    avatar: 'server/static/user_avatar/test.jpg'
+                },
+                shoptypes: [],
+                shops: [],
+                shopsShow: [],
+                searching:false
+            },
+            beforeCreate() {
+                $.ajax({
+                    url: host + "/getuser/",
+                    method: "get",
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    success: (response) => {
+                        if (response['result'] == 0) {
+                            this.user = response;
+                            this.user.avatar = 'server/' + this.user.avatar
+                        }
+
+                    }
+
+                });
+                $.ajax({
+                    url: "http://127.0.0.1:5000/shoptypes/",
+                    method: "get",
+                    success: (response) => {
+
+                        this.shoptypes = response;
+                    }
+                });
+                $.ajax({
+                    url: "http://127.0.0.1:5000/getshops/",
+                    method: "get",
+                    success: (response) => {
+
+                        this.shopsShow = this.shops = response.shops;
+                    }
+                });
+            },
+            methods: {
+                changeCategory(e) {
+                    this.category = e;
+                    this.searchShops();
+                },
+                searchShops(){
+                    this.searching = true;
+                    this.shopsShow = this.shops.filter((shop)=>shop.name.toLowerCase().includes(this.query.toLowerCase())&&(shop.type==this.category||this.category=='all'));
+                    this.searching = false;
+                },
+                toShop(shop_id){
+                    location.assign("/shop.html?shopID="+shop_id);
+                },
+
+                signout() {
+                    var cookies = document.cookie.split(";");
+                    var new_cookie = [];
+                    for (let cookie of cookies) {
+                        document.cookie = cookie.split("=")[0] + "=; ";
+                    }
+                    document.cookie = new_cookie.join(";");
+                    localStorage.clear();
+                    swal('Sign out successfully', 'hope next meet', 'success').then(() => {
+                        location.reload();
+                    });
+
+                },
+            }
+        })
+    </script>
+</body>
+
+</html>
