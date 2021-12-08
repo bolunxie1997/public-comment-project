@@ -4,9 +4,9 @@
       <div class="logo" />
       <a-menu v-model:selectedKeys="selectedKeys" theme="dark" mode="inline">
         <a-menu-item key="1">
-          <router-link to="home">
+          <router-link to="profile">
             <user-outlined />
-            <span>nav 1</span>
+            <span>Edit Profile</span>
           </router-link>
         </a-menu-item>
         <a-menu-item key="2">
@@ -34,7 +34,6 @@
         :style="{ margin: '24px 16px', padding: '24px', background: '#fff', minHeight: '280px' }"
       >
         <router-view/>
-        Content
       </a-layout-content>
     </a-layout>
   </a-layout>

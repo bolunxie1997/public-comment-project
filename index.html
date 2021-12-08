@@ -8,14 +8,20 @@
     <title>Index</title>
     <link rel="stylesheet" href="css/element.css">
     <link rel="stylesheet" href="css/fonts/font-awesome.min.css">
+    <!-- <link rel="stylesheet" href="css/monolisa.css"> -->
     <script src="js/vue.js"></script>
     <script src="js/element.js"></script>
     <script src="js/sweet-alert@2.1.2.js"></script>
     <script src="js/jquery-3.3.1.js"></script>
     <style>
+        @font-face {
+            font-family: MonoLisa;
+            src: url(css/fonts/MonoLisa.woff2);
+        }
         body {
             margin: 0;
             background-color: #f4f6f9;
+            font-family: MonoLisa;
         }
 
         .index-nav:hover {
@@ -144,6 +150,7 @@
 
     </div>
     <script>
+    
         var host = "http://127.0.0.1:5000";
         var vm = new Vue({
             el: "#app",
