@@ -4,17 +4,17 @@ import Profile from '../components/Profile.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path:"/manage/profile",
+    path:"/profile",
     name:'Profile',
     component:Profile
   },
   {
-    path: '/manage/home',
+    path: '/home',
     name: 'Home',
     component: Home
   },
   {
-    path: '/manage/about',
+    path: '/about',
     name: 'About',
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route

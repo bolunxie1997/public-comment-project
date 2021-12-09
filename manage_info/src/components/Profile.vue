@@ -1,21 +1,20 @@
-<template>
+<template >
+    <h2 style="text-align: right;">Edit Profile</h2>
     <a-form
         ref="formRef"
-        name="custom-validation"
         :model="formState"
         :rules="rules"
         v-bind="layout"
-        @finish="handleFinish"
-        @validate="handleValidate"
-        @finishFailed="handleFinishFailed"
     >
-        <a-form-item  has-feedback label="Username" name="user"  :rules="{required:true,trigger:'change'}"  >
-            <a-input v-model:value="formState.username">
+        <a-form-item  has-feedback label="UserName" name="username" 
+        :rules="{ required: true, message: 'Please input the username', trigger:'change'}">
+            <a-input v-model:value="formState.username" type="text">
                 <template #prefix>
                     <UserOutlined style="color: rgba(0, 0, 0, 0.25)" />
                 </template>
             </a-input>
         </a-form-item>
+
         <a-form-item has-feedback label="Password" name="pass">
             <a-input v-model:value="formState.pass" type="password" autocomplete="off" >
                 <template #prefix>
@@ -23,6 +22,7 @@
                 </template>
             </a-input>
         </a-form-item>
+
         <a-form-item has-feedback label="Confirm" name="checkPass">
             <a-input v-model:value="formState.checkPass" type="password" autocomplete="off" >
                 <template #prefix>
@@ -34,10 +34,10 @@
             <a-input-number v-model:value="formState.age" />
         </a-form-item>
         <a-form-item label="Avatar" name="avatar">
-            <UserAvatar @avatar-change="changAvatar($event)"></UserAvatar>
+            <UserAvatar @avatar-change="changAvatar($event)" ref="userAvatarRef"></UserAvatar>
         </a-form-item>
         <a-form-item :wrapper-col="{ span: 14, offset: 4 }">
-            <a-button type="primary" html-type="submit">Submit</a-button>
+            <a-button type="primary" html-type="submit" @click.prevent='submitForm'>Submit</a-button>
             <a-button style="margin-left: 10px" @click="resetForm">Reset</a-button>
         </a-form-item>
     </a-form>
@@ -49,6 +49,7 @@ import type { UnwrapRef } from 'vue';
 import UserAvatar from "./Avatar.vue"
 import { FileItem, FormState } from '@/Interfaces';
 import { UserOutlined, LockOutlined } from '@ant-design/icons-vue';
+import router from '@/router';
 
 export default defineComponent({
     components: {
@@ -58,10 +59,11 @@ export default defineComponent({
     },
     setup() {
         const formRef = ref();
+        const userAvatarRef = ref();
         const formState: UnwrapRef<FormState> = reactive({
             pass: '',
             checkPass: '',
-            username:"",
+            username: '',
             age: undefined,
         });
         let checkAge = async (_rule: RuleObject, value: number) => {
@@ -104,8 +106,9 @@ export default defineComponent({
             console.log(avatar);
         }
 
+
         const rules = {
-            // user: [{required:true}],
+            // username: [{ required: true, validator: checkUser, trigger:'change'}],
             pass: [{ required: true, validator: validatePass, trigger: 'change' }],
             checkPass: [{ required: true, validator: validatePass2, trigger: 'change' }],
             age: [{ validator: checkAge, trigger: 'change' }],
@@ -114,28 +117,29 @@ export default defineComponent({
             labelCol: { span: 4 },
             wrapperCol: { span: 14 },
         };
-        const handleFinish = (values: FormState) => {
-            console.log(values, formState);
-        };
-        const handleFinishFailed = (errors: any) => {
-            console.log(errors);
-        };
+        
+        
         const resetForm = () => {
             formRef.value.resetFields();
         };
-        const handleValidate = (...args: any[]) => {
-            console.log(args);
-        };
+        
+        const submitForm = ()=>{
+            //向后端发送请求
+            console.log("submit");
+            resetForm();
+            console.log(userAvatarRef.value.resetImgList());
+            
+        }
+
         return {
             formState,
             formRef,
             rules,
             layout,
-            handleFinishFailed,
-            handleFinish,
             resetForm,
-            handleValidate,
-            changAvatar
+            changAvatar,
+            submitForm,
+            userAvatarRef
         };
     },
 });

@@ -63,14 +63,17 @@ export default defineComponent({
                 context.emit("avatarChange",newFileList);
         };
 
-        const uploadImg = () => {
-            console.log(fileList.value);
-        }
+        
 
         const beforeUpload = () => {
             console.log(fileList.value)
             return false;
         };
+        
+        const resetImgList = ()=>{
+            fileList.value = [];
+
+        }
 
         return {
             previewVisible,
@@ -79,8 +82,8 @@ export default defineComponent({
             handleCancel,
             handlePreview,
             handleChange,
-            uploadImg,
-            beforeUpload
+            beforeUpload,
+            resetImgList
         };
     },
 });

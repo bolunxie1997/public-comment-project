@@ -51,6 +51,6 @@
   ],
   "vue": {
     "outputDir": "dist",
-    "assetsDir": "manage"
+    "publicPath": "/manage/"
   }
 }
