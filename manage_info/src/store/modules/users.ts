@@ -5,7 +5,9 @@ import { UserItem } from '@/Interfaces';
 
 
 const state = () => ({
-    users: null
+    users: [],
+    msg:"hello?",
+    user:null
 })
 
 const getters = {
@@ -13,7 +15,21 @@ const getters = {
 }
 
 const actions = {
+    async getUser({state}:any) {
+        if(state.user)
+            return;
+        axios.get(config.serverURL+"/getuser/",{
+            withCredentials:true
+        }).then(response=>{
+            if (response.data['result'] == 0) {
+                state.user = response.data;
+                state.user.avatar = config.serverURL + '/' + response.data['avatar'];
+            }
+        })
+    },
     async getUsers({ state }:any) {
+        if(state.users.length>0)
+            return;
         axios.get(config.serverURL+'/getusers/',{
             withCredentials:true
         }).then(response=>{
@@ -27,7 +43,40 @@ const actions = {
                 state.users = response.data['users'];
             }
         })
-    }
+    },
+    async deleteUserById({ state }:any,user_id:any) {
+        axios.get(config.serverURL + '/deleteuser/'+user_id,{
+            withCredentials:true
+        }).then(response=>{
+            if(response.data['result']== -1){
+                notification.warning({
+                    message:'Delete User failed',
+                    description:response.data['msg']
+                });
+            }
+            else{
+                // state.users = state.users.filter((item:UserItem)=>item.id!=user_id)
+                state.users.find((item:UserItem)=>item.id == user_id).state = 0;
+            }
+        })
+    },
+    async recoerUserById({ state }:any,user_id:any) {
+        axios.get(config.serverURL + '/recoveruser/'+user_id,{
+            withCredentials:true
+        }).then(response=>{
+            if(response.data['result']== -1){
+                notification.warning({
+                    message:'Recover User failed',
+                    description:response.data['msg']
+                });
+            }
+            else{
+                // state.users = state.users.filter((item:UserItem)=>item.id!=user_id)
+                state.users.find((item:UserItem)=>item.id == user_id).state = 1;
+            }
+        })
+    },
+
 
 }
 

@@ -10,7 +10,8 @@ class User(db.Model):
     age = db.Column(db.String(10))
     type = db.Column(db.Integer)# 0 - user 1 - boss 2 - admin
     desc = db.Column(db.Text)
-    avatar = db.Column(db.Text)
+    avatar = db.Column(db.Text) 
+    state = db.Column(db.Integer,default = 1) # # 1 - regular 0 - deleted
     ctime = db.Column(db.DateTime,default = datetime.now)
 
 class ShopType(db.Model):
@@ -30,6 +31,7 @@ class Shop(db.Model):
     owner = db.relationship('User',backref = db.backref('shops'))
     type_id = db.Column(db.Integer,db.ForeignKey('shop_type.id'))
     shopType = db.relationship('ShopType',backref = db.backref('shops'))
+    state = db.Column(db.Integer,default = 1) # # 1 - regular 0 - deleted
     ctime = db.Column(db.DateTime,default = datetime.now)
 
 
@@ -43,6 +45,7 @@ class Goods(db.Model):
     imgs = db.Column(db.Text)
     shop_id = db.Column(db.Integer,db.ForeignKey('shop.id'))
     shop = db.relationship('Shop',backref = db.backref('goods'))
+    state = db.Column(db.Integer,default = 1) # # 1 - regular 0 - deleted
     ctime = db.Column(db.DateTime,default = datetime.now)
 
 class Comment(db.Model):
@@ -56,6 +59,8 @@ class Comment(db.Model):
 
     shop_id = db.Column(db.Integer,db.ForeignKey('shop.id'))
     shop = db.relationship('Shop',backref = db.backref('comments'))
+    state = db.Column(db.Integer,default = 1) # # 1 - regular 0 - deleted
+
     ctime = db.Column(db.DateTime,default = datetime.now)
 
 
@@ -67,6 +72,8 @@ class Reply(db.Model):
     author = db.relationship('User',backref = db.backref('replies'))
     comment_id = db.Column(db.Integer,db.ForeignKey('comment.id'))
     comment = db.relationship('Comment',backref = db.backref('replies'))
+    state = db.Column(db.Integer,default = 1) # # 1 - regular 0 - deleted
+
     ctime = db.Column(db.DateTime,default = datetime.now)
 
 

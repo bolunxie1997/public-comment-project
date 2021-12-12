@@ -79,7 +79,7 @@
 <body>
     <div id="app">
         <div class="index-nav">
-            <a v-if="user.username==''" href="manage/"
+            <a v-if="user.username==''" href="login.html"
                 style="float: right;position: relative;right: 30px;top: 25px;text-decoration: none;cursor: pointer;">
                 Log in
             </a>
@@ -101,6 +101,7 @@
                 <img class="logo" />
                 <div style="align-self: center;font-size: 25px;">Public comment</div>
                 <el-link class="nav-link" type="primary" href="index.html">Home</el-link>
+                <el-link class="nav-link" v-if="user.username!='' && user.type=='2'" href="http://127.0.0.1:8080/manage/">Admin</el-link>
                 <el-link class="nav-link" v-if="user.username!='' && user.type=='1'" href="createshop.html">Store Settle
                 </el-link>
 

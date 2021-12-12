@@ -1,7 +1,7 @@
 from flask import Flask,jsonify,request,session,Response,make_response,send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import and_,or_
-from decorators import login_required
+from decorators import login_required,admin_required
 from flask_cors import CORS
 from ext import db
 from models import User,Shop,Comment,Goods,Reply,ShopType
@@ -22,7 +22,7 @@ def getUser():
     if(user_id==""):
         response = make_response(jsonify({'result':-1,'msg':'User not login'}))
     else:
-        user = User.query.filter(User.id==user_id).first()
+        user = User.query.filter(and_(User.id==user_id,User.state==1)).first()
         if(user):
              response = make_response(jsonify({'username':user.username,'result':0,'avatar':user.avatar,'type':user.type}))
         else:
@@ -35,31 +35,6 @@ def getUser():
 @app.route("/")
 def index():
     return send_from_directory("../", "index.html")
-
-@app.route("/getusers/")
-@login_required
-def getUsers():
-    user_id = request.cookies.get("user_id")
-    user = User.query.filter(User.id==int(user_id)).first()
-    if(user.type == 2):
-        allUsers = User.query.filter().all()
-        result = []
-        for u in allUsers:
-            result.append({
-                "id":u.id,
-                "username":u.username,
-                "age":int(u.age),
-                "gender":u.gender,
-                "type":u.type,
-                "ctime":str(u.ctime)
-            })
-        response = make_response(jsonify({"result":0,"users":result}))
-    else:
-        response = make_response(jsonify({"result":-1,"msg":'You are not admin'}))
-    response.headers['Access-Control-Allow-Credentials']='true'
-
-    return response
-
 
 @app.route('/shoptypes/')
 def getShopTypes():
@@ -82,12 +57,14 @@ def getShopTypes():
 def login():
     username = request.form.get("username")
     password = request.form.get("password")
-    user = User.query.filter(and_(User.username == username,User.password==password)).first()
+    user = User.query.filter(and_(User.username == username,User.password==password,User.state==1)).first()
     
     if(user):
         response = make_response(jsonify({'username':user.username,'result':0,'avatar':user.avatar,'type':user.type}))
         response.headers['Access-Control-Allow-Credentials']='true'
         response.set_cookie('user_id',str(user.id),max_age=3600)
+        response.set_cookie('user_type',str(user.type),max_age=3600)
+
         return response
     else:
         response = make_response(jsonify({'result':-1,'msg':'username or password is incorrect'}))
@@ -158,7 +135,7 @@ def createshop():
 
 @app.route('/getshops/')
 def getShops():
-    shops = Shop.query.filter().all()
+    shops = Shop.query.filter(Shop.state==1).all()
     result = []
     for shop in shops:
         sum_rateing = 0
@@ -193,7 +170,7 @@ def getShops():
 
 @app.route("/getshop/<shop_id>")
 def getShop(shop_id):
-    shop = Shop.query.filter(Shop.id==int(shop_id)).first()
+    shop = Shop.query.filter(and_(Shop.id==int(shop_id),Shop.state==1)).first()
     if(shop):
         comments = []
         for comment in reversed(shop.comments):
@@ -233,7 +210,7 @@ def getShop(shop_id):
 
 @app.route('/getreplies/<comment_id>')
 def getReplies(comment_id):
-    replies = Reply.query.filter(Reply.comment_id == int(comment_id)).order_by(Reply.ctime.desc()).all()
+    replies = Reply.query.filter(and_(Reply.comment_id == int(comment_id),Reply.state==1)).order_by(Reply.ctime.desc()).all()
     result = []
     for reply in replies:
         result.append({
@@ -305,7 +282,188 @@ def addReply():
     response.headers['Access-Control-Allow-Credentials']='true'
     return response
 
+# ======================Version 2 ========================
 
+#admin authorities
+@app.route("/getusers/")
+@login_required
+def getUsers():
+    user_id = request.cookies.get("user_id")
+    user = User.query.filter(User.id==int(user_id)).first()
+    if(user.type == 2):
+        allUsers = User.query.filter().all()
+        result = []
+        for u in allUsers:
+            result.append({
+                "id":u.id,
+                "username":u.username,
+                "age":int(u.age),
+                "gender":u.gender,
+                "type":u.type,
+                "state":u.state,
+                "ctime":str(u.ctime)
+            })
+        response = make_response(jsonify({"result":0,"users":result}))
+    else:
+        response = make_response(jsonify({"result":-1,"msg":'You are not admin'}))
+    response.headers['Access-Control-Allow-Credentials']='true'
+
+    return response
+
+@app.route('/deleteuser/<user_id>')
+@admin_required
+def deleteUserById(user_id):
+    try:
+        del_user = User.query.filter(User.id==int(user_id)).first()
+        del_user.state = 0
+        db.session.commit()
+        response = make_response(jsonify({"result":0}))
+    except Exception as e:
+        response = make_response(jsonify({"result":-1,"msg":str(e)}))
+
+    response.headers['Access-Control-Allow-Credentials']='true'
+    return response
+
+@app.route('/recoveruser/<user_id>')
+@admin_required
+def recoverUserById(user_id):
+    try:
+        del_user = User.query.filter(User.id==int(user_id)).first()
+        del_user.state = 1
+        db.session.commit()
+        response = make_response(jsonify({"result":0}))
+    except Exception as e:
+        response = make_response(jsonify({"result":-1,"msg":str(e)}))
+
+    response.headers['Access-Control-Allow-Credentials']='true'
+    return response
+
+
+#user authorities
+@app.route('/editprofile/',methods=['POST'])
+@login_required
+def editProfile():
+    try:
+        user_id = request.cookies.get("user_id")
+        username = request.form.get("username")
+        password = request.form.get("password")
+        avatar = request.files.get("avatar")
+
+        user = User.query.filter(User.id==int(user_id)).first()
+        avatar_file = open(serverPath + user.avatar,"wb")
+        avatar_file.write(avatar.read())
+        avatar_file.close()
+        
+        user.username = username
+        user.password = password
+        db.session.commit()
+
+        response = make_response(jsonify({'username':user.username,'result':0,'avatar':user.avatar,'type':user.type}))
+    except Exception as e:
+        response = make_response(jsonify({"result":-1,"msg":str(e)}))
+
+    response.headers['Access-Control-Allow-Credentials']='true'
+    return response
+
+@app.route("/getcomments/")
+@login_required
+def getComments():
+    try:
+        user_id = request.cookies.get("user_id")
+        user_type = request.cookies.get("user_type")
+        if(user_type == '2'):
+            comments = Comment.query.filter(Comment.state == 1).all()
+        else:
+            comments = Comment.query.filter(and_(Comment.state == 1,Comment.author_id==int(user_id))).all()
+        results = []
+        for comment in comments:
+            results.append({
+                    'id':comment.id,
+                    "content":comment.content,
+                    "rating":comment.rating,
+                    "imgs":json.loads(comment.imgs),
+                    "author":{
+                        "username":comment.author.username,
+                        "avatar":comment.author.avatar,
+                    },
+                    'ctime':str(comment.ctime),
+                    "replies_length":len(comment.replies)
+                })
+        
+        response = make_response(jsonify({'comments':results,'result':0,}))
+    except Exception as e:
+        response = make_response(jsonify({"result":-1,"msg":str(e)}))
+
+    response.headers['Access-Control-Allow-Credentials']='true'
+    return response
+
+@app.route('/deletecomment/<comment_id>')
+@login_required
+def deleteComment(comment_id):
+    try:
+        comment = Comment.query.filter(Comment.id==int(comment_id)).first()
+        comment.state = 0
+        db.session.commit()
+        response = make_response(jsonify({'result':0}))
+    except Exception as e:
+        response = make_response(jsonify({"result":-1,"msg":str(e)}))
+    return response
+
+
+@app.route('/deleteshop/<shop_id>')
+@login_required
+def deleteShop(shop_id):
+    try:
+        shop = Shop.query.filter(Shop.id==int(shop_id)).first()
+        shop.state = 0
+        db.session.commit()
+        response = make_response(jsonify({'result':0}))
+    except Exception as e:
+        response = make_response(jsonify({"result":-1,"msg":str(e)}))
+    return response
+
+
+@app.route('/deletereply/<reply_id>')
+@login_required
+def deleteReply(reply_id):
+    try:
+        reply = Reply.query.filter(Reply.id==int(reply_id)).first()
+        reply.state = 0
+        db.session.commit()
+        response = make_response(jsonify({'result':0}))
+    except Exception as e:
+        response = make_response(jsonify({"result":-1,"msg":str(e)}))
+    return response
+
+
+@app.route('/getreplies/')
+@login_required
+def getAllReplies():
+    try:
+        user_id = request.cookies.get("user_id")
+        user_type = request.cookies.get("user_type")
+        if(user_type == '2'):
+            replies = Reply.query.filter().all()
+        else:
+            replies = Reply.query.filter(and_(Reply.author_id == int(user_id),Reply.state == 1)).all()
+        
+        result = []
+        for reply in replies:
+            result.append({
+                "id":reply.id,
+                "content":reply.content,
+                "author":reply.author.username,
+                "shop_id":reply.comment.shop_id,
+                "comment_id":reply.comment_id,
+                "ctime":str(reply.ctime)
+            })
+        response = make_response(jsonify({'replies':results,'result':0}))
+
+    except Exception as e:
+        response = make_response(jsonify({"result":-1,"msg":str(e)}))
+
+    response.headers['Access-Control-Allow-Credentials']='true'
+    return response
 
 
 

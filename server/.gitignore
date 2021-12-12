@@ -1,2 +1,3 @@
 # sqlalchemy migrations
 migrations
+__pycache__

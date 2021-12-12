@@ -31,7 +31,7 @@
 
         <a-menu-item key="5">
           <router-link to="users">
-            <user-outlined/>
+            <user-outlined />
             <span>Manage Users</span>
           </router-link>
         </a-menu-item>
@@ -45,11 +45,22 @@
           @click="() => (collapsed = !collapsed)"
         />
         <menu-fold-outlined v-else class="trigger" @click="() => (collapsed = !collapsed)" />
+        <div style="display: inline-block;position: absolute;right: 20px;">
+          <div style="display: flex;">
+            <div>
+              <img style="width: 40px;height: 40px; border-radius: 50%  ;" v-if="user!=null" :src="user.avatar"  />
+            </div>
+            <h3 style="margin-left: 20px;" v-if="user == null">
+              <a href="http://127.0.0.1:5500/login.html">Login</a>
+            </h3>
+            <h3 style="margin-left: 20px;" v-if="user!=null">{{ user.username }}</h3>
+          </div>
+        </div>
       </a-layout-header>
       <a-layout-content
         :style="{ margin: '24px 16px', padding: '24px', background: '#fff', minHeight: '280px' }"
       >
-        <router-view/>
+        <router-view />
       </a-layout-content>
     </a-layout>
   </a-layout>
@@ -64,7 +75,8 @@ import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
 } from '@ant-design/icons-vue';
-import { defineComponent, ref } from 'vue';
+import { computed, defineComponent, ref } from 'vue';
+import { useStore } from 'vuex';
 export default defineComponent({
   components: {
     UserOutlined,
@@ -76,7 +88,11 @@ export default defineComponent({
     MenuFoldOutlined,
   },
   setup() {
+    const store = useStore();
+    store.dispatch("getUser")
+    const user = computed(()=>store.state.users.user);
     return {
+      user,
       selectedKeys: ref<string[]>(['1']),
       collapsed: ref<boolean>(false),
     };
