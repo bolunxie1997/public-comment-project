@@ -1,7 +1,7 @@
 from flask import Flask,jsonify,request,session,Response,make_response,send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import and_,or_
-
+from decorators import login_required
 from flask_cors import CORS
 from ext import db
 from models import User,Shop,Comment,Goods,Reply,ShopType
@@ -14,6 +14,7 @@ db.init_app(app)
 CORS(app)
 
 serverPath = os.path.dirname(__file__)+'/'
+
 
 @app.route("/getuser/")
 def getUser():
@@ -34,6 +35,31 @@ def getUser():
 @app.route("/")
 def index():
     return send_from_directory("../", "index.html")
+
+@app.route("/getusers/")
+@login_required
+def getUsers():
+    user_id = request.cookies.get("user_id")
+    user = User.query.filter(User.id==int(user_id)).first()
+    if(user.type == 2):
+        allUsers = User.query.filter().all()
+        result = []
+        for u in allUsers:
+            result.append({
+                "id":u.id,
+                "username":u.username,
+                "age":int(u.age),
+                "gender":u.gender,
+                "type":u.type,
+                "ctime":str(u.ctime)
+            })
+        response = make_response(jsonify({"result":0,"users":result}))
+    else:
+        response = make_response(jsonify({"result":-1,"msg":'You are not admin'}))
+    response.headers['Access-Control-Allow-Credentials']='true'
+
+    return response
+
 
 @app.route('/shoptypes/')
 def getShopTypes():

@@ -5,19 +5,35 @@
       <a-menu v-model:selectedKeys="selectedKeys" theme="dark" mode="inline">
         <a-menu-item key="1">
           <router-link to="profile">
-            <user-outlined />
+            <profile-outlined />
             <span>Edit Profile</span>
           </router-link>
         </a-menu-item>
         <a-menu-item key="2">
-          <router-link to="about">
-            <video-camera-outlined />
-            <span>nav 2</span>
+          <router-link to="comments">
+            <comment-outlined />
+            <span>Manage Comments</span>
           </router-link>
         </a-menu-item>
         <a-menu-item key="3">
-          <upload-outlined />
-          <span>nav 3</span>
+          <router-link to="replies">
+            <message-outlined />
+            <span>Manage Replies</span>
+          </router-link>
+        </a-menu-item>
+
+        <a-menu-item key="4">
+          <router-link to="shops">
+            <shop-outlined />
+            <span>Manage Shops</span>
+          </router-link>
+        </a-menu-item>
+
+        <a-menu-item key="5">
+          <router-link to="users">
+            <user-outlined/>
+            <span>Manage Users</span>
+          </router-link>
         </a-menu-item>
       </a-menu>
     </a-layout-sider>
@@ -41,8 +57,10 @@
 <script lang="ts">
 import {
   UserOutlined,
-  VideoCameraOutlined,
-  UploadOutlined,
+  CommentOutlined,
+  MessageOutlined,
+  ShopOutlined,
+  ProfileOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
 } from '@ant-design/icons-vue';
@@ -50,8 +68,10 @@ import { defineComponent, ref } from 'vue';
 export default defineComponent({
   components: {
     UserOutlined,
-    VideoCameraOutlined,
-    UploadOutlined,
+    CommentOutlined,
+    MessageOutlined,
+    ShopOutlined,
+    ProfileOutlined,
     MenuUnfoldOutlined,
     MenuFoldOutlined,
   },

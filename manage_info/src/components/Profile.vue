@@ -49,7 +49,6 @@ import type { UnwrapRef } from 'vue';
 import UserAvatar from "./Avatar.vue"
 import { FileItem, FormState } from '@/Interfaces';
 import { UserOutlined, LockOutlined } from '@ant-design/icons-vue';
-import router from '@/router';
 
 export default defineComponent({
     components: {

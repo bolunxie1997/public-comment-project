@@ -21,11 +21,21 @@ interface FormState {
     username:String,
     age: number | undefined;
 }
+interface UserItem {
+    id: string|number;
+    username: string;
+    age: number;
+    gender: string;
+    type:number | string,
+    ctime:string | Date
+  }
+
 
 export {
     FileInfo,
     FileItem,
-    FormState
+    FormState,
+    UserItem
 }
 
 

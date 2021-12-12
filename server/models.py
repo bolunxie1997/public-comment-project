@@ -8,7 +8,7 @@ class User(db.Model):
     password = db.Column(db.String(20))
     gender = db.Column(db.String(10))
     age = db.Column(db.String(10))
-    type = db.Column(db.Integer)
+    type = db.Column(db.Integer)# 0 - user 1 - boss 2 - admin
     desc = db.Column(db.Text)
     avatar = db.Column(db.Text)
     ctime = db.Column(db.DateTime,default = datetime.now)
