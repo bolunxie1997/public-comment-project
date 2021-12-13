@@ -23,7 +23,7 @@ const actions = {
         }).then(response=>{
             if (response.data['result'] == 0) {
                 state.user = response.data;
-                state.user.avatar = config.serverURL + '/' + response.data['avatar'];
+                state.user.avatar = config.serverURL + '/' + response.data['avatar'] + "?v=" +  Math.random().toString();
             }
         })
     },
@@ -76,12 +76,17 @@ const actions = {
             }
         })
     },
+    
 
 
 }
 
 const mutations = {
-    
+    editUser(state:any,payload:any){
+        state.user = payload;
+        state.user.avatar = config.serverURL + '/' + payload['avatar'] + "?v=" +  Math.random().toString();
+
+    }
 }
 
 export default {

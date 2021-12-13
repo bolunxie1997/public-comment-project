@@ -1,7 +1,8 @@
 <template>
   <a-layout>
     <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible id="sideBar">
-      <div class="logo" />
+      <div class="logo">
+      </div>
       <a-menu v-model:selectedKeys="selectedKeys" theme="dark" mode="inline">
         <a-menu-item key="1">
           <router-link to="profile">
@@ -37,8 +38,8 @@
         </a-menu-item>
       </a-menu>
     </a-layout-sider>
-    <a-layout>
-      <a-layout-header style="background: #fff; padding: 0">
+    <a-layout style="height: 100vh;overflow: auto;">
+      <a-layout-header style="background: #fff; padding: 0" class="nav-header">
         <menu-unfold-outlined
           v-if="collapsed"
           class="trigger"
@@ -89,7 +90,9 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    //global state
     store.dispatch("getUser")
+    store.dispatch("getShopTypes")
     const user = computed(()=>store.state.users.user);
     return {
       user,
@@ -117,12 +120,23 @@ export default defineComponent({
 }
 
 .logo {
-  height: 32px;
-  background: rgba(255, 255, 255, 0.3);
+  height: 50px;
+  background-size: 170px 50px;
+  /* background: rgba(255, 255, 255, 0.3); */
+  background-image:url("./assets/logo.png");
+  text-align: center;
   margin: 16px;
 }
 
+
+
 .site-layout .site-layout-background {
   background: #fff;
+}
+
+.nav-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 </style>

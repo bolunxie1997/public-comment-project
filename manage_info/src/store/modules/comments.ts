@@ -1,32 +1,68 @@
 import axios from 'axios'
 import config from '../../config'
 import { notification } from 'ant-design-vue';
+import { CommentItem } from '@/Interfaces';
+
 
 
 const state = () => ({
-    comments: null
+    comments: [],
 })
 
 const getters = {
-
+    
 }
 
 const actions = {
-    async getComments({ state }:any) {
+    async getComments({ state,dispatch }:any) {
+        dispatch('getShopTypes',null,{root:true});
         axios.get(config.serverURL+'/getcomments/',{
             withCredentials:true
         }).then(response=>{
             if(response.data['result']== -1){
                 notification.warning({
-                    message:'Get User List failed',
+                    message:'Get Comment List failed',
                     description:response.data['msg']
                 });
             }
             else{
                 state.comments = response.data['comments'];
             }
+        });
+        
+    },
+    async deleteCommentById({ state }:any,comment_id:any) {
+        axios.get(config.serverURL + '/deletecomment/'+comment_id,{
+            withCredentials:true
+        }).then(response=>{
+            if(response.data['result']== -1){
+                notification.warning({
+                    message:'Delete Comment failed',
+                    description:response.data['msg']
+                });
+            }
+            else{
+                // state.comments = state.comments.filter((item:CommentItem)=>item.id!=comment_id)
+                state.comments.find((item:CommentItem)=>item.id == comment_id).state = 0;
+            }
         })
-    }
+    },
+    async recoerCommentById({ state }:any,comment_id:any) {
+        axios.get(config.serverURL + '/recovercomment/'+comment_id,{
+            withCredentials:true
+        }).then(response=>{
+            if(response.data['result']== -1){
+                notification.warning({
+                    message:'Recover Comment failed',
+                    description:response.data['msg']
+                });
+            }
+            else{
+                // state.comments = state.comments.filter((item:CommentItem)=>item.id!=comment_id)
+                state.comments.find((item:CommentItem)=>item.id == comment_id).state = 1;
+            }
+        })
+    },
 
 }
 

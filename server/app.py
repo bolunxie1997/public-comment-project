@@ -157,6 +157,7 @@ def getShops():
                 "username":shop.owner.username,
                 "avatar":shop.owner.avatar
             },
+            "state":shop.state,
             "type":shop.shopType.name,
             "ctime":str(shop.ctime),
             'comments_length':len(shop.comments),
@@ -372,7 +373,7 @@ def getComments():
         user_id = request.cookies.get("user_id")
         user_type = request.cookies.get("user_type")
         if(user_type == '2'):
-            comments = Comment.query.filter(Comment.state == 1).all()
+            comments = Comment.query.filter().all()
         else:
             comments = Comment.query.filter(and_(Comment.state == 1,Comment.author_id==int(user_id))).all()
         results = []
@@ -382,11 +383,16 @@ def getComments():
                     "content":comment.content,
                     "rating":comment.rating,
                     "imgs":json.loads(comment.imgs),
+                    "shop":{
+                        "name":comment.shop.name,
+                        "type":comment.shop.shopType.name
+                    },
                     "author":{
                         "username":comment.author.username,
                         "avatar":comment.author.avatar,
                     },
                     'ctime':str(comment.ctime),
+                    "state":comment.state,
                     "replies_length":len(comment.replies)
                 })
         
@@ -407,8 +413,23 @@ def deleteComment(comment_id):
         response = make_response(jsonify({'result':0}))
     except Exception as e:
         response = make_response(jsonify({"result":-1,"msg":str(e)}))
+    response.headers['Access-Control-Allow-Credentials']='true'
+
     return response
 
+@app.route('/recovercomment/<comment_id>')
+@admin_required
+def recoverComment(comment_id):
+    try:
+        comment = Comment.query.filter(Comment.id==int(comment_id)).first()
+        comment.state = 1
+        db.session.commit()
+        response = make_response(jsonify({'result':0}))
+    except Exception as e:
+        response = make_response(jsonify({"result":-1,"msg":str(e)}))
+    response.headers['Access-Control-Allow-Credentials']='true'
+
+    return response
 
 @app.route('/deleteshop/<shop_id>')
 @login_required
@@ -420,8 +441,23 @@ def deleteShop(shop_id):
         response = make_response(jsonify({'result':0}))
     except Exception as e:
         response = make_response(jsonify({"result":-1,"msg":str(e)}))
+    response.headers['Access-Control-Allow-Credentials']='true'
+
     return response
 
+@app.route('/recovershop/<shop_id>')
+@admin_required
+def recoverShop(shop_id):
+    try:
+        shop = Shop.query.filter(Shop.id==int(shop_id)).first()
+        shop.state = 1
+        db.session.commit()
+        response = make_response(jsonify({'result':0}))
+    except Exception as e:
+        response = make_response(jsonify({"result":-1,"msg":str(e)}))
+    response.headers['Access-Control-Allow-Credentials']='true'
+
+    return response
 
 @app.route('/deletereply/<reply_id>')
 @login_required
@@ -433,6 +469,22 @@ def deleteReply(reply_id):
         response = make_response(jsonify({'result':0}))
     except Exception as e:
         response = make_response(jsonify({"result":-1,"msg":str(e)}))
+    response.headers['Access-Control-Allow-Credentials']='true'
+
+    return response
+
+@app.route('/recoverreply/<reply_id>')
+@admin_required
+def recoverReply(reply_id):
+    try:
+        reply = Reply.query.filter(Reply.id==int(reply_id)).first()
+        reply.state = 1
+        db.session.commit()
+        response = make_response(jsonify({'result':0}))
+    except Exception as e:
+        response = make_response(jsonify({"result":-1,"msg":str(e)}))
+    response.headers['Access-Control-Allow-Credentials']='true'
+
     return response
 
 
@@ -452,12 +504,27 @@ def getAllReplies():
             result.append({
                 "id":reply.id,
                 "content":reply.content,
-                "author":reply.author.username,
-                "shop_id":reply.comment.shop_id,
-                "comment_id":reply.comment_id,
+                "author":{
+                    "username":reply.author.username,
+                    "avatar":reply.author.avatar
+                },
+                "shop":{
+                    "id":reply.comment.shop.id,
+                    "name":reply.comment.shop.name,
+                    "imgs":json.loads(reply.comment.shop.imgs)
+                },
+                "state":reply.state,
+                "comment":{
+                    "author":{
+                        "username":reply.comment.author.username,
+                        "avatar":reply.comment.author.avatar,
+                    },
+                    "content":reply.comment.content,
+                    "imgs":json.loads(reply.comment.imgs)
+                },
                 "ctime":str(reply.ctime)
             })
-        response = make_response(jsonify({'replies':results,'result':0}))
+        response = make_response(jsonify({'replies':result,'result':0}))
 
     except Exception as e:
         response = make_response(jsonify({"result":-1,"msg":str(e)}))

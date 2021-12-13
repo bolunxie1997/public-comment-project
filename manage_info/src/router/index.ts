@@ -32,6 +32,10 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Users',
     component: Users
   },
+  {
+    path:"/",
+    redirect:"/profile",
+  }
   // {
   //   path: '/about',
   //   name: 'About',

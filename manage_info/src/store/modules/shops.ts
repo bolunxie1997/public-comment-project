@@ -1,12 +1,12 @@
 import axios from 'axios'
 import config from '../../config'
 import { notification } from 'ant-design-vue';
-import { ReplyItem } from '@/Interfaces';
+import { ShopItem } from '@/Interfaces';
 
 
 
 const state = () => ({
-    replies: [],
+    shops: [],
 })
 
 const getters = {
@@ -14,51 +14,52 @@ const getters = {
 }
 
 const actions = {
-    async getReplies({ state,dispatch }:any) {
-        axios.get(config.serverURL+'/getreplies/',{
+    async getShops({ state,dispatch }:any) {
+        dispatch('getShopTypes',null,{root:true});
+        axios.get(config.serverURL+'/getshops/',{
             withCredentials:true
         }).then(response=>{
             if(response.data['result']== -1){
                 notification.warning({
-                    message:'Get Reply List failed',
+                    message:'Get Shop List failed',
                     description:response.data['msg']
                 });
             }
             else{
-                state.replies = response.data['replies'];
+                state.shops = response.data['shops'];
             }
         });
         
     },
-    async deleteReplyById({ state }:any,reply_id:any) {
-        axios.get(config.serverURL + '/deletereply/'+reply_id,{
+    async deleteShopById({ state }:any,shop_id:any) {
+        axios.get(config.serverURL + '/deleteshop/'+shop_id,{
             withCredentials:true
         }).then(response=>{
             if(response.data['result']== -1){
                 notification.warning({
-                    message:'Delete Reply failed',
+                    message:'Delete Shop failed',
                     description:response.data['msg']
                 });
             }
             else{
-                // state.replies = state.replies.filter((item:ReplyItem)=>item.id!=reply_id)
-                state.replies.find((item:ReplyItem)=>item.id == reply_id).state = 0;
+                // state.shops = state.shops.filter((item:ShopItem)=>item.id!=shop_id)
+                state.shops.find((item:ShopItem)=>item.id == shop_id).state = 0;
             }
         })
     },
-    async recoverReplyById({ state }:any,reply_id:any) {
-        axios.get(config.serverURL + '/recoverreply/'+reply_id,{
+    async recoerShopById({ state }:any,shop_id:any) {
+        axios.get(config.serverURL + '/recovershop/'+shop_id,{
             withCredentials:true
         }).then(response=>{
             if(response.data['result']== -1){
                 notification.warning({
-                    message:'Recover Reply failed',
+                    message:'Recover Shop failed',
                     description:response.data['msg']
                 });
             }
             else{
-                // state.replies = state.replies.filter((item:ReplyItem)=>item.id!=reply_id)
-                state.replies.find((item:ReplyItem)=>item.id == reply_id).state = 1;
+                // state.shops = state.shops.filter((item:ShopItem)=>item.id!=shop_id)
+                state.shops.find((item:ShopItem)=>item.id == shop_id).state = 1;
             }
         })
     },
