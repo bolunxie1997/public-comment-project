@@ -31,7 +31,7 @@ const actions = {
         });
         
     },
-    async deleteCommentById({ state }:any,comment_id:any) {
+    async deleteCommentById({ state ,rootGetters }:any,comment_id:any) {
         axios.get(config.serverURL + '/deletecomment/'+comment_id,{
             withCredentials:true
         }).then(response=>{
@@ -42,8 +42,11 @@ const actions = {
                 });
             }
             else{
-                // state.comments = state.comments.filter((item:CommentItem)=>item.id!=comment_id)
-                state.comments.find((item:CommentItem)=>item.id == comment_id).state = 0;
+                if(rootGetters.isManager)
+                    state.comments.find((item:CommentItem)=>item.id == comment_id).state = 0;
+                else
+                    state.comments = state.comments.filter((item:CommentItem)=>item.id!=comment_id)
+
             }
         })
     },

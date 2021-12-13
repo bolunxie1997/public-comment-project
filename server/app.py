@@ -133,6 +133,8 @@ def createshop():
             
 
 
+
+
 @app.route('/getshops/')
 def getShops():
     shops = Shop.query.filter(Shop.state==1).all()
@@ -429,6 +431,47 @@ def recoverComment(comment_id):
         response = make_response(jsonify({"result":-1,"msg":str(e)}))
     response.headers['Access-Control-Allow-Credentials']='true'
 
+    return response
+
+
+@app.route('/getshopsfromadmin/')
+@login_required
+def getShopsFromAdmin():
+    user_type = request.cookies.get("user_type")
+    if(user_type=='2'):
+        shops = Shop.query.filter().all()
+    else:
+        shops = Shop.query.filter(Shop.state==1).all()
+    result = []
+    for shop in shops:
+        sum_rateing = 0
+        for comment in shop.comments:
+            sum_rateing += comment.rating
+
+        if len(shop.comments)==0:
+            average_rating = 0
+        else:
+            average_rating = round(sum_rateing/len(shop.comments),1)
+
+        temp={
+            "id":shop.id,
+            "name":shop.name,
+            "address":shop.address,
+            "desc":shop.desc,
+            "imgs":json.loads(shop.imgs),
+            "owner":{
+                "username":shop.owner.username,
+                "avatar":shop.owner.avatar
+            },
+            "state":shop.state,
+            "type":shop.shopType.name,
+            "ctime":str(shop.ctime),
+            'comments_length':len(shop.comments),
+            "average_rating":average_rating
+        }
+        result.append(temp)
+    response = make_response(jsonify({'result':0,'shops':result}))
+    response.headers['Access-Control-Allow-Credentials']='true'
     return response
 
 @app.route('/deleteshop/<shop_id>')

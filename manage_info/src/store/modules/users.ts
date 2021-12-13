@@ -7,7 +7,6 @@ import { UserItem } from '@/Interfaces';
 const state = () => ({
     users: [],
     msg:"hello?",
-    user:null
 })
 
 const getters = {
@@ -15,18 +14,7 @@ const getters = {
 }
 
 const actions = {
-    async getUser({state}:any) {
-        if(state.user)
-            return;
-        axios.get(config.serverURL+"/getuser/",{
-            withCredentials:true
-        }).then(response=>{
-            if (response.data['result'] == 0) {
-                state.user = response.data;
-                state.user.avatar = config.serverURL + '/' + response.data['avatar'] + "?v=" +  Math.random().toString();
-            }
-        })
-    },
+   
     async getUsers({ state }:any) {
         if(state.users.length>0)
             return;
@@ -82,11 +70,7 @@ const actions = {
 }
 
 const mutations = {
-    editUser(state:any,payload:any){
-        state.user = payload;
-        state.user.avatar = config.serverURL + '/' + payload['avatar'] + "?v=" +  Math.random().toString();
-
-    }
+    
 }
 
 export default {

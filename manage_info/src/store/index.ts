@@ -9,7 +9,9 @@ import { notification } from 'ant-design-vue'
 
 export default createStore({
   state: () => ({
-    shopTypes: []
+    shopTypes: [],
+    user:null
+
   }),
   getters: {
     getShopTypes(state:any){
@@ -17,7 +19,17 @@ export default createStore({
         text:type.name,
         value:type.name
       }))
+    },
+    isManager(state:any){
+      return state.user.type == 2;
     }
+  },
+  mutations:{
+    editUser(state:any,payload:any){
+      state.user = payload;
+      state.user.avatar = config.serverURL + '/' + payload['avatar'] + "?v=" +  Math.random().toString();
+
+  }
   },
   actions: {
     getShopTypes({ state }: any) {
@@ -37,7 +49,19 @@ export default createStore({
           state.shopTypes = response.data;
         }
       });
-    }
+    },
+    async getUser({state}:any) {
+      if(state.user)
+          return;
+      axios.get(config.serverURL+"/getuser/",{
+          withCredentials:true
+      }).then(response=>{
+          if (response.data['result'] == 0) {
+              state.user = response.data;
+              state.user.avatar = config.serverURL + '/' + response.data['avatar'] + "?v=" +  Math.random().toString();
+          }
+      })
+  },
   },
   modules: {
     users,

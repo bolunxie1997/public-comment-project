@@ -16,7 +16,7 @@ const getters = {
 const actions = {
     async getShops({ state,dispatch }:any) {
         dispatch('getShopTypes',null,{root:true});
-        axios.get(config.serverURL+'/getshops/',{
+        axios.get(config.serverURL+'/getshopsfromadmin/',{
             withCredentials:true
         }).then(response=>{
             if(response.data['result']== -1){
@@ -31,7 +31,7 @@ const actions = {
         });
         
     },
-    async deleteShopById({ state }:any,shop_id:any) {
+    async deleteShopById({ state,rootGetters  }:any,shop_id:any) {
         axios.get(config.serverURL + '/deleteshop/'+shop_id,{
             withCredentials:true
         }).then(response=>{
@@ -42,8 +42,11 @@ const actions = {
                 });
             }
             else{
-                // state.shops = state.shops.filter((item:ShopItem)=>item.id!=shop_id)
-                state.shops.find((item:ShopItem)=>item.id == shop_id).state = 0;
+                if(rootGetters.isManager)
+                    state.shops.find((item:ShopItem)=>item.id == shop_id).state = 0;
+                else
+                    state.shops = state.shops.filter((item:ShopItem)=>item.id!=shop_id)
+
             }
         })
     },

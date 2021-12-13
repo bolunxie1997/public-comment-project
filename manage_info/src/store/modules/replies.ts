@@ -30,7 +30,7 @@ const actions = {
         });
         
     },
-    async deleteReplyById({ state }:any,reply_id:any) {
+    async deleteReplyById({ state , rootGetters  }:any,reply_id:any) {
         axios.get(config.serverURL + '/deletereply/'+reply_id,{
             withCredentials:true
         }).then(response=>{
@@ -41,8 +41,11 @@ const actions = {
                 });
             }
             else{
-                // state.replies = state.replies.filter((item:ReplyItem)=>item.id!=reply_id)
-                state.replies.find((item:ReplyItem)=>item.id == reply_id).state = 0;
+                if(rootGetters.isManager)
+                    state.replies.find((item:ReplyItem)=>item.id == reply_id).state = 0;
+                else
+                    state.replies = state.replies.filter((item:ReplyItem)=>item.id!=reply_id)
+
             }
         })
     },

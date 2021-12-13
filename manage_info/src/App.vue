@@ -1,7 +1,7 @@
 <template>
   <a-layout>
     <a-layout-sider v-model:collapsed="collapsed" :trigger="null" collapsible id="sideBar">
-      <div class="logo">
+      <div class="logo" @click="toIndex">
       </div>
       <a-menu v-model:selectedKeys="selectedKeys" theme="dark" mode="inline">
         <a-menu-item key="1">
@@ -23,14 +23,14 @@
           </router-link>
         </a-menu-item>
 
-        <a-menu-item key="4">
+        <a-menu-item key="4" v-if="user && user.type!=0">
           <router-link to="shops">
             <shop-outlined />
             <span>Manage Shops</span>
           </router-link>
         </a-menu-item>
 
-        <a-menu-item key="5">
+        <a-menu-item key="5" v-if="user && user.type==2">
           <router-link to="users">
             <user-outlined />
             <span>Manage Users</span>
@@ -52,7 +52,7 @@
               <img style="width: 40px;height: 40px; border-radius: 50%  ;" v-if="user!=null" :src="user.avatar"  />
             </div>
             <h3 style="margin-left: 20px;" v-if="user == null">
-              <a href="http://127.0.0.1:5500/login.html">Login</a>
+              <a href="/login.html">Login</a>
             </h3>
             <h3 style="margin-left: 20px;" v-if="user!=null">{{ user.username }}</h3>
           </div>
@@ -93,11 +93,15 @@ export default defineComponent({
     //global state
     store.dispatch("getUser")
     store.dispatch("getShopTypes")
-    const user = computed(()=>store.state.users.user);
+    const user = computed(()=>store.state.user);
+    const toIndex = ()=>{
+      location.assign('/index.html')
+    }
     return {
       user,
       selectedKeys: ref<string[]>(['1']),
       collapsed: ref<boolean>(false),
+      toIndex
     };
   },
 });
@@ -126,6 +130,7 @@ export default defineComponent({
   background-image:url("./assets/logo.png");
   text-align: center;
   margin: 16px;
+  cursor: pointer;
 }
 
 

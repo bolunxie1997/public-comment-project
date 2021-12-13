@@ -6,7 +6,7 @@
         <a-popconfirm
           v-if="dataSource.length && record.state == 1"
           title="Sure to delete?"
-          @confirm="onDelete(record.id)"
+          @confirm.prevent="onDelete(record.id)"
         >
           <a-button type="link" danger>Delete</a-button>
         </a-popconfirm>
@@ -14,7 +14,7 @@
         <a-popconfirm
           v-if="dataSource.length && record.state == 0"
           title="Sure to recover?"
-          @confirm="onRecover(record.id)"
+          @confirm.prevent="onRecover(record.id)"
         >
           <a-button type="link" success>Recover</a-button>
         </a-popconfirm>
